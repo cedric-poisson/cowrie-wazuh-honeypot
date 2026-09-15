@@ -4,4 +4,4 @@
 *.tfvars
 vault_pass.txt
 *.pem
-*.key
+*.keyansible/inventory/hosts.yml
