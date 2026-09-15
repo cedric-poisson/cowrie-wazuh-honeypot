@@ -1,0 +1,83 @@
+---
+- name: Vérifier si Wazuh est déjà installé
+  stat:
+    path: /var/ossec/bin/wazuh-control
+  register: wazuh_installed
+  become: true
+
+- name: Télécharger le script d'installation officiel Wazuh
+  get_url:
+    url: "{{ wazuh_install_script_url }}"
+    dest: "{{ wazuh_install_script_dest }}"
+    mode: "0750"
+    force: true
+  become: true
+  when: not wazuh_installed.stat.exists
+
+- name: Installer Wazuh (all-in-one manager + indexer + dashboard)
+  command: "bash {{ wazuh_install_script_dest }} -a -o"
+  become: true
+  when: not wazuh_installed.stat.exists
+  register: wazuh_install_result
+
+- name: Afficher les identifiants générés (à récupérer une seule fois)
+  debug:
+    msg: "{{ wazuh_install_result.stdout_lines }}"
+  when: wazuh_install_result is defined and wazuh_install_result.changed
+
+- name: S'assurer que le service wazuh-manager est démarré et activé
+  systemd:
+    name: wazuh-manager
+    enabled: true
+    state: started
+  become: true
+
+- name: Déployer les règles custom pour les événements Cowrie
+  blockinfile:
+    path: /var/ossec/etc/rules/local_rules.xml
+    marker: "<!-- {mark} ANSIBLE MANAGED BLOCK: cowrie rules -->"
+    block: |
+      <group name="cowrie,">
+
+        <rule id="100100" level="3">
+          <decoded_as>json</decoded_as>
+          <field name="eventid">^cowrie\.</field>
+          <description>Cowrie honeypot event detected.</description>
+        </rule>
+
+        <rule id="100101" level="5">
+          <if_sid>100100</if_sid>
+          <field name="eventid">^cowrie\.login\.failed$</field>
+          <description>Cowrie: Failed login from $(src_ip) - user: $(username)</description>
+          <group>authentication_failed,</group>
+        </rule>
+
+        <rule id="100102" level="7">
+          <if_sid>100100</if_sid>
+          <field name="eventid">^cowrie\.login\.success$</field>
+          <description>Cowrie: Successful login from $(src_ip) - user: $(username)</description>
+          <group>authentication_success,</group>
+        </rule>
+
+        <rule id="100103" level="6">
+          <if_sid>100100</if_sid>
+          <field name="eventid">^cowrie\.command\.input$</field>
+          <description>Cowrie: Command executed by attacker: $(input)</description>
+        </rule>
+
+        <rule id="100104" level="10">
+          <if_sid>100100</if_sid>
+          <field name="eventid">^cowrie\.session\.file_download$</field>
+          <description>Cowrie: File downloaded by attacker from $(src_ip)</description>
+          <group>malware,</group>
+        </rule>
+
+        <rule id="100105" level="3">
+          <if_sid>100100</if_sid>
+          <field name="eventid">^cowrie\.session\.connect$</field>
+          <description>Cowrie: New connection from $(src_ip)</description>
+        </rule>
+
+      </group>
+  become: true
+  notify: redémarrer wazuh-manager  

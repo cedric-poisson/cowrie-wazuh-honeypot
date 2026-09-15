@@ -1,0 +1,2 @@
+wazuh_install_script_url: https://packages.wazuh.com/4.14/wazuh-install.sh
+wazuh_install_script_dest: /tmp/wazuh-install.sh

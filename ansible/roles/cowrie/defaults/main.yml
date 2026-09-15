@@ -1,0 +1,5 @@
+cowrie_user: cowrie
+cowrie_home: /home/cowrie
+cowrie_repo: https://github.com/cowrie/cowrie.git
+cowrie_ssh_port: 2222
+cowrie_version: main

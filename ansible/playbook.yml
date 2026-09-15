@@ -1,0 +1,15 @@
+---
+- name: Configurer le manager Wazuh
+  hosts: siem
+  roles:
+    - wazuh_manager
+
+- name: Configurer le honeypot Cowrie
+  hosts: honeypot
+  roles:
+    - cowrie
+
+- name: Installer l'agent Wazuh sur le honeypot
+  hosts: honeypot
+  roles:
+    - wazuh_agent

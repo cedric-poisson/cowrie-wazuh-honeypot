@@ -1,0 +1,48 @@
+---
+- name: Ajouter la clé GPG du dépôt Wazuh
+  apt_key:
+    url: "{{ wazuh_agent_repo_key }}"
+    state: present
+  become: true
+
+- name: Ajouter le dépôt APT Wazuh
+  apt_repository:
+    repo: "{{ wazuh_agent_repo_url }}"
+    state: present
+    filename: wazuh
+  become: true
+
+- name: Installer l'agent Wazuh
+  apt:
+    name: wazuh-agent
+    update_cache: true
+  become: true
+  environment:
+    WAZUH_MANAGER: "{{ wazuh_manager_ip }}"
+
+- name: Configurer l'adresse du manager dans ossec.conf
+  lineinfile:
+    path: /var/ossec/etc/ossec.conf
+    regexp: "<address>.*</address>"
+    line: "  <address>{{ wazuh_manager_ip }}</address>"
+  become: true
+  notify: redémarrer agent wazuh
+
+- name: Surveiller les logs Cowrie avec l'agent Wazuh
+  blockinfile:
+    path: /var/ossec/etc/ossec.conf
+    insertbefore: "</ossec_config>"
+    block: |
+      <localfile>
+        <log_format>json</log_format>
+        <location>{{ cowrie_home | default('/home/cowrie') }}/cowrie/var/log/cowrie/cowrie.json</location>
+      </localfile>
+  become: true
+  notify: redémarrer agent wazuh
+
+- name: Activer et démarrer l'agent Wazuh
+  systemd:
+    name: wazuh-agent
+    enabled: true
+    state: started
+  become: true

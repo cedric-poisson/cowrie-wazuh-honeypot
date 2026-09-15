@@ -1,0 +1,6 @@
+---
+- name: redémarrer cowrie
+  systemd:
+    name: cowrie
+    state: restarted
+  become: true

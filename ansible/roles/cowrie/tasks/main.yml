@@ -1,0 +1,90 @@
+---
+- name: Installer les dépendances système
+  apt:
+    name:
+      - git
+      - python3-venv
+      - python3-pip
+      - libssl-dev
+      - libffi-dev
+      - build-essential
+      - authbind
+    update_cache: true
+  become: true
+
+- name: Installer le paquet acl (requis pour become_user)
+  apt:
+    name: acl
+    state: present
+    update_cache: true
+  become: true
+  
+- name: Créer l'utilisateur dédié cowrie
+  user:
+    name: "{{ cowrie_user }}"
+    home: "{{ cowrie_home }}"
+    shell: /bin/bash
+    system: true
+  become: true
+
+- name: Cloner le repo Cowrie
+  git:
+    repo: "{{ cowrie_repo }}"
+    dest: "{{ cowrie_home }}/cowrie"
+    version: "{{ cowrie_version }}"
+  become: true
+  become_user: "{{ cowrie_user }}"
+
+- name: Créer l'environnement virtuel Python
+  command: python3 -m venv "{{ cowrie_home }}/cowrie/cowrie-env"
+  args:
+    creates: "{{ cowrie_home }}/cowrie/cowrie-env"
+  become: true
+  become_user: "{{ cowrie_user }}"
+
+- name: Installer les dépendances Python de Cowrie
+  pip:
+    requirements: "{{ cowrie_home }}/cowrie/requirements.txt"
+    virtualenv: "{{ cowrie_home }}/cowrie/cowrie-env"
+  become: true
+  become_user: "{{ cowrie_user }}"
+
+- name: Installer le package Cowrie lui-même (génère les entry points)
+  pip:
+    name: "{{ cowrie_home }}/cowrie"
+    virtualenv: "{{ cowrie_home }}/cowrie/cowrie-env"
+    editable: true
+  become: true
+  become_user: "{{ cowrie_user }}"  
+
+- name: Copier la config Cowrie par défaut
+  copy:
+    src: "{{ cowrie_home }}/cowrie/src/cowrie/data/etc/cowrie.cfg.dist"
+    dest: "{{ cowrie_home }}/cowrie/etc/cowrie.cfg"
+    remote_src: true
+    force: false
+  become: true
+  become_user: "{{ cowrie_user }}"
+
+- name: Configurer le port d'écoute SSH de Cowrie
+  lineinfile:
+    path: "{{ cowrie_home }}/cowrie/etc/cowrie.cfg"
+    regexp: "^listen_endpoints"
+    line: "listen_endpoints = tcp:{{ cowrie_ssh_port }}:interface=0.0.0.0"
+  become: true
+  become_user: "{{ cowrie_user }}"
+
+- name: Déployer le service systemd Cowrie
+  template:
+    src: cowrie.service.j2
+    dest: /etc/systemd/system/cowrie.service
+  become: true
+  notify: redémarrer cowrie
+
+- name: Activer et démarrer le service Cowrie
+  systemd:
+    name: cowrie
+    enabled: true
+    state: started
+    daemon_reload: true
+  become: true

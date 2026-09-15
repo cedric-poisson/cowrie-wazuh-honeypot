@@ -1,0 +1,16 @@
+[Unit]
+Description=Cowrie SSH/Telnet Honeypot
+After=network.target
+
+[Service]
+Type=forking
+User={{ cowrie_user }}
+WorkingDirectory={{ cowrie_home }}/cowrie
+Environment=PATH={{ cowrie_home }}/cowrie/cowrie-env/bin:/usr/bin:/bin
+ExecStart={{ cowrie_home }}/cowrie/cowrie-env/bin/cowrie start
+ExecStop={{ cowrie_home }}/cowrie/cowrie-env/bin/cowrie stop
+PIDFile={{ cowrie_home }}/cowrie/var/run/cowrie.pid
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
