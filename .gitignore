@@ -4,4 +4,5 @@
 *.tfvars
 vault_pass.txt
 *.pem
-*.keyansible/inventory/hosts.yml
+*.key
+ansible/inventory/hosts.yml
