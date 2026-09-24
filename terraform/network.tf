@@ -25,7 +25,7 @@ resource "azurerm_network_security_group" "nsg_honeypot" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "1515"
-    source_address_prefix      = "*"
+    source_address_prefix      = azurerm_subnet.subnet_honeypot.address_prefixes[0]
     destination_address_prefix = "*"
   }
 
@@ -37,7 +37,7 @@ resource "azurerm_network_security_group" "nsg_honeypot" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "1514"
-    source_address_prefix      = "*"
+    source_address_prefix      = azurerm_subnet.subnet_honeypot.address_prefixes[0]
     destination_address_prefix = "*"
   }
 
@@ -61,7 +61,10 @@ resource "azurerm_network_security_group" "nsg_honeypot" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
+
     source_address_prefix      = "REDACTED/32"
+    source_address_prefix      = var.admin_ip_cidr
+ abc6875 (Durcissement sécu : NSG restreint, IP admin en variable, enrollment Wazuh par mot de passe)
     destination_address_prefix = "*"
   }
     security_rule {
@@ -72,7 +75,11 @@ resource "azurerm_network_security_group" "nsg_honeypot" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "443"
+
     source_address_prefix      = "REDACTED/32"
+
+    source_address_prefix      = var.admin_ip_cidr
+ abc6875 (Durcissement sécu : NSG restreint, IP admin en variable, enrollment Wazuh par mot de passe)
     destination_address_prefix = "*"
   }
 }

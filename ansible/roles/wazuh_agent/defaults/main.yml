@@ -1,3 +1,3 @@
-wazuh_manager_ip: "{{ hostvars['wazuh']['ansible_host'] }}"
+wazuh_manager_ip: "{{ hostvars['wazuh']['wazuh_private_ip'] }}"
 wazuh_agent_repo_key: https://packages.wazuh.com/key/GPG-KEY-WAZUH
 wazuh_agent_repo_url: "deb https://packages.wazuh.com/4.x/apt/ stable main"

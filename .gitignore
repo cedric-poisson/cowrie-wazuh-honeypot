@@ -6,3 +6,4 @@ vault_pass.txt
 *.pem
 *.key
 ansible/inventory/hosts.yml
+.terraform.tfstate.lock.info

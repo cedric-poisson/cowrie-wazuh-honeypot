@@ -25,7 +25,7 @@ Internet
 │                                           │
 │  NSG : 2222 (public), 22 (admin only),   │
 │  443 (dashboard, admin only),            │
-│  1514/1515 (agent-manager)               │
+│  1514/1515 (agent-manager, subnet only)  │
 └─────────────────────────────────────────┘
 ```
 
@@ -75,6 +75,17 @@ cowrie-wazuh-honeypot/
 - OpenTofu installé
 - Ansible installé
 - Une clé SSH RSA (Azure ne supporte pas ed25519 pour l'admin des VM)
+- Un `terraform/terraform.tfvars` (non versionné) avec ton IP publique admin :
+  ```hcl
+  admin_ip_cidr = "x.x.x.x/32"
+  ```
+- Un mot de passe d'enrollment Wazuh chiffré avec `ansible-vault` :
+  ```bash
+  cp ansible/group_vars/all/vault.yml.example ansible/group_vars/all/vault.yml
+  # éditer wazuh_registration_password avec un mot de passe fort
+  ansible-vault encrypt ansible/group_vars/all/vault.yml
+  echo "ton_mot_de_passe_vault" > vault_pass.txt   # déjà dans .gitignore
+  ```
 
 ### Étapes
 
@@ -90,7 +101,7 @@ cd ..
 
 # 3. Configurer les VM (Cowrie + Wazuh + agent)
 cd ansible/
-ansible-playbook -i inventory/hosts.yml playbook.yml
+ansible-playbook -i inventory/hosts.yml playbook.yml --vault-password-file ../vault_pass.txt
 ```
 
 ### Accès

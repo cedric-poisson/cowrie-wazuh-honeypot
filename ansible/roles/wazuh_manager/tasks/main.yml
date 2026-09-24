@@ -32,6 +32,26 @@
     state: started
   become: true
 
+- name: Activer l'authentification par mot de passe pour l'enrollment des agents
+  lineinfile:
+    path: /var/ossec/etc/ossec.conf
+    regexp: "<use_password>"
+    line: "    <use_password>yes</use_password>"
+    insertafter: "<auth>"
+  become: true
+  notify: redémarrer wazuh-manager
+
+- name: Déposer le mot de passe d'enrollment authd
+  copy:
+    content: "{{ wazuh_registration_password }}"
+    dest: /var/ossec/etc/authd.pass
+    owner: root
+    group: wazuh
+    mode: "0640"
+  become: true
+  no_log: true
+  notify: redémarrer wazuh-manager
+
 - name: Déployer les règles custom pour les événements Cowrie
   blockinfile:
     path: /var/ossec/etc/rules/local_rules.xml

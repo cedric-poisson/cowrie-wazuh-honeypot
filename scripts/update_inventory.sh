@@ -17,16 +17,18 @@ cd "$TERRAFORM_DIR"
 
 COWRIE_IP=$(tofu output -raw cowrie_public_ip)
 WAZUH_IP=$(tofu output -raw wazuh_public_ip)
+WAZUH_PRIVATE_IP=$(tofu output -raw wazuh_private_ip)
 
 cd - > /dev/null
 
-if [ -z "$COWRIE_IP" ] || [ -z "$WAZUH_IP" ]; then
+if [ -z "$COWRIE_IP" ] || [ -z "$WAZUH_IP" ] || [ -z "$WAZUH_PRIVATE_IP" ]; then
     echo "Erreur : impossible de récupérer les IP. As-tu bien fait 'tofu apply' ?"
     exit 1
 fi
 
-echo "IP Cowrie : $COWRIE_IP"
-echo "IP Wazuh  : $WAZUH_IP"
+echo "IP Cowrie       : $COWRIE_IP"
+echo "IP Wazuh        : $WAZUH_IP"
+echo "IP Wazuh privée : $WAZUH_PRIVATE_IP"
 
 cat > "$INVENTORY_FILE" << EOF
 all:
@@ -39,6 +41,7 @@ all:
       hosts:
         wazuh:
           ansible_host: "${WAZUH_IP}"
+          wazuh_private_ip: "${WAZUH_PRIVATE_IP}"
   vars:
     ansible_user: azadmin
     ansible_ssh_private_key_file: ~/.ssh/homelab_vm_rsa

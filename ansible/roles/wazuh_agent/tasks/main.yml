@@ -19,6 +19,8 @@
   become: true
   environment:
     WAZUH_MANAGER: "{{ wazuh_manager_ip }}"
+    WAZUH_REGISTRATION_PASSWORD: "{{ wazuh_registration_password }}"
+  no_log: true
 
 - name: Configurer l'adresse du manager dans ossec.conf
   lineinfile:
