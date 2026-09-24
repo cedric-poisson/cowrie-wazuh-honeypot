@@ -1,3 +1,4 @@
+
 resource "azurerm_virtual_network" "vnet" {
   name                = "vnet-cowrie-honeypot"
   address_space       = ["10.10.0.0/24"]
@@ -61,10 +62,7 @@ resource "azurerm_network_security_group" "nsg_honeypot" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-
-    source_address_prefix      = "REDACTED/32"
     source_address_prefix      = var.admin_ip_cidr
- abc6875 (Durcissement sécu : NSG restreint, IP admin en variable, enrollment Wazuh par mot de passe)
     destination_address_prefix = "*"
   }
     security_rule {
@@ -75,11 +73,7 @@ resource "azurerm_network_security_group" "nsg_honeypot" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "443"
-
-    source_address_prefix      = "REDACTED/32"
-
     source_address_prefix      = var.admin_ip_cidr
- abc6875 (Durcissement sécu : NSG restreint, IP admin en variable, enrollment Wazuh par mot de passe)
     destination_address_prefix = "*"
   }
 }
